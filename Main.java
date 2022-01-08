@@ -25,14 +25,6 @@ public class Main {
         frame.add(timerButton);
         frame.setVisible(true);
 
-        Thread runTimerThread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    runTimerOnLabel(timerLabel, timer);
-                }catch (Exception e) {}
-            }
-        });
-        
         timerButton.addActionListener(new ActionListener() {
 
             @Override
