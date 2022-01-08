@@ -46,10 +46,9 @@ public class Main {
                     {
                         timer.decreaseTimerByOneSecond();
                         Thread.sleep(1000);
-                        label.setText(timer.toString());
                         publish(timer);
                     }
-                    timer.setRunning(false);
+                timer.setRunning(false);
                 } catch (Exception e) {}
                 return null;
             }
@@ -58,7 +57,6 @@ public class Main {
             protected void process(List<Timer> timerList) {
                 label.setText(timerList.get(0).toString());
             }
-
         };
             worker.execute();
     }
