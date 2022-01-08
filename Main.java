@@ -1,6 +1,6 @@
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
 
 public class Main {
     public static void main (String[] args)
@@ -25,6 +25,14 @@ public class Main {
         frame.add(timerButton);
         frame.setVisible(true);
 
+        Thread runTimerThread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    runTimerOnLabel(timerLabel, timer);
+                }catch (Exception e) {}
+            }
+        });
+        
         timerButton.addActionListener(new ActionListener() {
 
             @Override
@@ -36,16 +44,30 @@ public class Main {
 
     public static void runTimerOnLabel(JLabel label, Timer timer) 
     {
-        timer.setRunning(true);
-        try {
-            while(timer.isTimeLeft() && timer.isRunning())
-            {
-                timer.decreaseTimerByOneSecond();
-                Thread.sleep(1000);
-                label.setText(timer.toString());
+        SwingWorker<Void,Timer> worker = new SwingWorker<Void,Timer>() {
+
+            @Override
+            protected Void doInBackground() {
+                timer.setRunning(true);
+                try {
+                    while(timer.isTimeLeft() && timer.isRunning())
+                    {
+                        timer.decreaseTimerByOneSecond();
+                        Thread.sleep(1000);
+                        label.setText(timer.toString());
+                        publish(timer);
+                    }
+                    timer.setRunning(false);
+                } catch (Exception e) {}
+                return null;
             }
-            timer.setRunning(false);
-            label.setText("Timer over!");
-        } catch (Exception e) {}
+
+            @Override
+            protected void process(List<Timer> timerList) {
+                label.setText(timerList.get(0).toString());
+            }
+
+        };
+            worker.execute();
     }
 }
