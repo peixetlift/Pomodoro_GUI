@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.*;
+import java.lang.Math;
 
 public class Main {
     public static void main (String[] args)
@@ -15,69 +16,83 @@ public class Main {
         JFrame frame = new JFrame();
         JButton timerButton = new JButton("Start/Stop");
         JLabel timerLabel = new JLabel("Timer stopped"); 
+        JProgressBar progressBar = new JProgressBar(0,100);
         JPanel panel = new JPanel();
-        Timer timer = new Timer(25,0);
+        Timer timer = new Timer(0,0);
+        ArrayList<JComboBox> dropDownTimes = new ArrayList<>();
+        
+        initJComboBoxes(dropDownTimes);
 
         frame.setTitle("Pomodoro");
+        frame.setPreferredSize(new Dimension(550, 250));
         frame.setLayout(new FlowLayout());
 
         panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
         timerLabel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
         timerButton.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        progressBar.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
         panel.add(timerLabel);
         panel.add(timerButton);
+        panel.add(progressBar);
 
         frame.add(Box.createHorizontalGlue());
         frame.add(panel);
         frame.add(Box.createHorizontalGlue());
+        for(JComboBox box : dropDownTimes)
+            frame.add(box);
         frame.pack();
         frame.setVisible(true);
 
-        timerButton.addActionListener(new ActionListener() {
 
+        timerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!timer.isRunning())
-                    runTimerOnLabel(timerLabel, timer);
+                    runTimerOnLabelAndProgressBar(timerLabel, progressBar, timer);
                 else
                     timer.setRunning(false);
 
                 if(!timer.isTimeLeft())
-                    startNextTimer(timer, 25, 5);
+                    startNextTimer(timer, (int) dropDownTimes.get(0).getSelectedItem(), (int) dropDownTimes.get(1).getSelectedItem());
             }
         });
 
     }
 
-    public static void startNextTimer(Timer timer, int longTimerMinutes, int shortTimerMinutes)
+    public static void startNextTimer(Timer timer, int workTimerMinutes, int restTimerMinutes)
         {
-            if(timer.isShortTimer())
+            if(timer.isRestTimer())
             {
-                timer.setMinutes(longTimerMinutes);
-                timer.unsetShortTimer();
+                timer.setMinutes(workTimerMinutes);
+                timer.setRestTimer(false);
             }
             else
             {
-                timer.setMinutes(shortTimerMinutes);
-                timer.setShortTimer();
+                timer.setMinutes(restTimerMinutes);
+                timer.setRestTimer(true);
             }
         }
 
-    public static void runTimerOnLabel(JLabel label, Timer timer) 
+    public static void runTimerOnLabelAndProgressBar(JLabel timerLabel, JProgressBar progressBar, Timer timer) 
     {
         SwingWorker<Void,Timer> worker = new SwingWorker<Void,Timer>() {
 
             @Override
             protected Void doInBackground() {
+                int initialTimer = timer.getMinutes();
+                float progress = 0;
                 timer.setRunning(true);
                 try {
                     while(timer.isTimeLeft() && timer.isRunning())
                     {
                         timer.decreaseTimerByOneSecond();
                         publish(timer);
+                        progress = (float) timer.getMinutes() / initialTimer;
+                        updateProgressBar(progressBar, (1 - progress), false);
                         Thread.sleep(5);
                     } 
+                    updateProgressBar(progressBar, 1, true);
                     timer.setRunning(false);
                 } catch (Exception e) {}
                 return null;
@@ -85,9 +100,9 @@ public class Main {
 
             @Override
             protected void process(List<Timer> timerList) {
-                label.setText(timerList.get(0).toString());
+                timerLabel.setText(timerList.get(0).toString());
                 if(!timer.isTimeLeft())
-                    changeTextToTimerOver(label, timer);
+                    changeTextToTimerOver(timerLabel, timer);
             }
         };
             worker.execute();
@@ -95,9 +110,30 @@ public class Main {
 
     public static void changeTextToTimerOver(JLabel label, Timer timer)
     {
-        if(!timer.isShortTimer())
-            label.setText("Working Timer Over, start the break timer!");
+        if(!timer.isRestTimer())
+            label.setText("Start the break timer!");
         else
-            label.setText("Pause Timer Over, start the working timer!");
+            label.setText("Start the work timer!");
     }
+
+    public static void updateProgressBar(JProgressBar bar, float value, boolean finished)
+    {
+        bar.setStringPainted(true);
+        value = finished ? value : value - 0.05f;
+        bar.setValue(Math.round(value * 100));
+    }
+    
+    public static void initJComboBoxes(ArrayList<JComboBox> boxArray)
+    {
+        JComboBox workTimersBox = new JComboBox();
+        JComboBox restTimersBox = new JComboBox();
+        boxArray.add(workTimersBox);
+        boxArray.add(restTimersBox);
+        
+        for(JComboBox box : boxArray) {
+            for(int i = 0; i <= 60; i++) {
+                box.addItem(i);
+            }
+        }
+    }        
 }

@@ -6,14 +6,14 @@ public class Timer
     int minutes;
     int seconds;
     boolean running;
-    boolean shortTimer; //short timer == true; long timer == false
+    boolean restTimer; //rest timer == true; long timer == false
 
     public Timer(int minutes,int seconds) 
     {
         this.minutes = minutes;
         this.seconds = seconds;
         this.running = false;
-        this.shortTimer = false;
+        this.restTimer = true;
     }
 
     public void setMinutes(int minutes) 
@@ -31,14 +31,9 @@ public class Timer
         this.running = running;
     }
 
-    public void setShortTimer()
+    public void setRestTimer(boolean value)
     {
-        this.shortTimer = true;
-    }
-
-    public void unsetShortTimer()
-    {
-        this.shortTimer = false;
+        this.restTimer = value;
     }
 
     public int getMinutes() 
@@ -56,9 +51,9 @@ public class Timer
         return this.running;
     }
 
-    public boolean isShortTimer()
+    public boolean isRestTimer()
     {
-        return this.shortTimer;
+        return this.restTimer;
     }
 
     public boolean isTimeLeft() 
