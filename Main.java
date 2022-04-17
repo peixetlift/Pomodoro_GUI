@@ -80,7 +80,7 @@ public class Main {
 
             @Override
             protected Void doInBackground() {
-                int initialTimer = timer.getMinutes();
+                int initialTimerInMinutes = timer.getMinutes();
                 float progress = 0;
                 timer.setRunning(true);
                 try {
@@ -88,11 +88,11 @@ public class Main {
                     {
                         timer.decreaseTimerByOneSecond();
                         publish(timer);
-                        progress = (float) timer.getMinutes() / initialTimer;
-                        updateProgressBar(progressBar, (1 - progress), false);
-                        Thread.sleep(5);
+                        progress = calculateProgress(timer, (initialTimerInMinutes * 60));
+                        updateProgressBar(progressBar, (1 - progress));
+                        Thread.sleep(1000);
                     } 
-                    updateProgressBar(progressBar, 1, true);
+                    updateProgressBar(progressBar, 1);
                     timer.setRunning(false);
                 } catch (Exception e) {}
                 return null;
@@ -107,6 +107,12 @@ public class Main {
         };
             worker.execute();
     }
+    
+    public static float calculateProgress(Timer timer, int totalSeconds) 
+    {
+        int elapsedSeconds = (timer.getMinutes() * 60) + timer.getSeconds();
+        return (float) elapsedSeconds / totalSeconds;
+    }
 
     public static void changeTextToTimerOver(JLabel label, Timer timer)
     {
@@ -116,10 +122,9 @@ public class Main {
             label.setText("Start the work timer!");
     }
 
-    public static void updateProgressBar(JProgressBar bar, float value, boolean finished)
+    public static void updateProgressBar(JProgressBar bar, float value)
     {
         bar.setStringPainted(true);
-        value = finished ? value : value - 0.05f;
         bar.setValue(Math.round(value * 100));
     }
     
